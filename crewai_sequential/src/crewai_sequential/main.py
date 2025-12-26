@@ -1,10 +1,26 @@
 #!/usr/bin/env python
+import os
+from dotenv import load_dotenv
+
+# Load the .env file in your CrewAI project root
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
+# Now environment variables are available
+from langfuse import get_client
+from openinference.instrumentation.crewai import CrewAIInstrumentor
+
+lf = get_client()
+CrewAIInstrumentor().instrument(skip_dep_check=True)
+
+
+
+
 import sys
 import warnings
 
 from datetime import datetime
 
-from crewai_sequential.crew import CrewaiSequential
+from test_llm.crew import TestLlm
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
@@ -14,18 +30,19 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 # interpolate any tasks and agents information
 
 def run():
-    """
-    Run the crew.
-    """
     inputs = {
-        'topic': 'AI LLMs',
+        'topic': 'Machine Learning Model Evaluation',
         'current_year': str(datetime.now().year)
     }
 
     try:
-        CrewaiSequential().crew().kickoff(inputs=inputs)
+        # Wrap the kickoff in a Langfuse observation
+        with lf.start_as_current_observation(as_type="span", name="TestLlm-run"):
+            TestLlm().crew().kickoff(inputs=inputs)
+        lf.flush()  # send telemetry to Langfuse
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
+
 
 
 def train():
@@ -37,7 +54,7 @@ def train():
         'current_year': str(datetime.now().year)
     }
     try:
-        CrewaiSequential().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+        TestLlm().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
 
     except Exception as e:
         raise Exception(f"An error occurred while training the crew: {e}")
@@ -47,7 +64,7 @@ def replay():
     Replay the crew execution from a specific task.
     """
     try:
-        CrewaiSequential().crew().replay(task_id=sys.argv[1])
+        TestLlm().crew().replay(task_id=sys.argv[1])
 
     except Exception as e:
         raise Exception(f"An error occurred while replaying the crew: {e}")
@@ -57,12 +74,12 @@ def test():
     Test the crew execution and returns the results.
     """
     inputs = {
-        "topic": "AI LLMs",
+        "topic": "Machine Learning Model Evaluation",
         "current_year": str(datetime.now().year)
     }
 
     try:
-        CrewaiSequential().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
+        TestLlm().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
 
     except Exception as e:
         raise Exception(f"An error occurred while testing the crew: {e}")
@@ -88,7 +105,7 @@ def run_with_trigger():
     }
 
     try:
-        result = CrewaiSequential().crew().kickoff(inputs=inputs)
+        result = TestLlm().crew().kickoff(inputs=inputs)
         return result
     except Exception as e:
         raise Exception(f"An error occurred while running the crew with trigger: {e}")
