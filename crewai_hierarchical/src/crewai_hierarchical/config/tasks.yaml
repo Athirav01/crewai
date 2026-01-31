@@ -1,0 +1,26 @@
+research_task:
+  description: >
+    Research {topic} considering the current year is {current_year}.
+    Output ONLY 10–12 concise bullet points.
+    Do not include introductions, conclusions, or paragraphs.
+  expected_output: >
+    Exactly 10–12 bullet points.
+  agent: researcher
+
+
+analysis_task:
+  description: >
+    Analyze the research findings and organize them into structured themes.
+    Perform this task once and do not repeat.
+  expected_output: >
+    A single structured outline.
+  agent: analyst
+
+reporting_task:
+  description: >
+    Convert the analysis into a detailed markdown learning report.
+    This is the final task. Do not request further changes after completion.
+  expected_output: >
+    One complete markdown report.
+  agent: educator
+
